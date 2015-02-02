@@ -1,0 +1,30 @@
+{
+  "name": "pup",
+  "version": "0.0.1",
+  "authors": [
+    "Josh Taylor <joshrtay@gmail.com>"
+  ],
+  "description": "beauty of code presentation",
+  "main": "index.js",
+  "keywords": [
+    "code",
+    "pression",
+    "expression"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "~1.3.11",
+    "angular-animate": "~1.3.11",
+    "angular-route": "~1.3.11",
+    "jquery": "~2.1.3",
+    "angular-material": "~0.7.1",
+    "angular-sanitize": "~1.3.11"
+  }
+}
