@@ -10,8 +10,12 @@ var symlink = require('gulp-symlink');
 var sass = require('gulp-sass');
 var concat = require('gulp-concat');
 var livereload = require('gulp-livereload');
+var concat = require('gulp-concat');
+var filter = require('gulp-filter');
+var csso = require('gulp-csso');
 var source = require('vinyl-source-stream');
 var buffer = require('vinyl-buffer');
+var File = require('vinyl');
 
 // browserify watch
 var watchify = require('watchify');
@@ -26,6 +30,11 @@ var sassify = require('sassify');
 var fs = require('fs');
 var child_process = require('child_process');
 var rimraf = require('rimraf');
+var rework = require('rework');
+var reworkURL = require('rework-plugin-url');
+var es = require('event-stream');
+var path = require('path');
+
 
 /**
  * Tasks
@@ -42,9 +51,11 @@ gulp.task('link-pages', ['unlink-pages'], link('pages'));
 // create public dir
 gulp.task('public', ['unlink-public'], makePublic);
 
+gulp.task('bower-css', ['public'], bowerCss);
+
 // Dev
 gulp.task('build', ['public', 'link-lib', 'link-pages'], bundle);
-gulp.task('dev', ['build'], startApp);
+gulp.task('dev', ['build', 'bower-css'], startApp);
 
 /**
  * Bundler
@@ -66,6 +77,33 @@ function bundle() {
     .pipe(sourcemaps.write('./')) // writes .map file
     .pipe(gulp.dest('./public'))
     .pipe(livereload());
+}
+
+function bowerCss() {
+  
+  var cssFilter = filter('**/*.css');
+
+  return gulp.src('./bower.json')
+    .pipe(es.through(pluckFilesFromJson('dependencies')))
+    .pipe(es.mapSync(function(name) {
+      return path.join('bower_components', name, '/bower.json');
+    }))
+    .pipe(vinylify())
+    .pipe(es.through(pluckFilesFromJson('main')))
+    .pipe(vinylify())
+    .pipe(cssFilter)
+    .pipe(es.mapSync(function(file) {
+      var css = file.contents.toString('utf8')
+        , res = rework(css)
+        .use(urlRewriter(file))
+        .toString({sourcemap: true});
+
+      file.contents = new Buffer(res);
+      return file;
+    }))
+    .on('error', logError)
+    .pipe(concat('bower.css'))
+    .pipe(gulp.dest('public'));
 }
 
 function makePublic() {
@@ -122,4 +160,49 @@ function startApp(cb) {
     if(msg === 'listening')
       cb && cb();
   });
+}
+
+function vinylify(base) {
+  base = base || process.cwd();
+  return es.through(function(file) {
+    if(file[0] !== '/')
+      file = path.join(base, file);
+
+    console.log('file', file, fs.existsSync(file));
+    fs.existsSync(file) && this.emit('data', new File({
+      path: file,
+      base: base,
+      contents: fs.readFileSync(file)
+    }));
+  });
+}
+
+function pluckFilesFromJson(prop) {
+  return function(file) {
+    var self = this
+      , json = JSON.parse(file.contents.toString('utf8'));
+
+    if(Array.isArray(json[prop])) {
+      json[prop].forEach(function(p) {
+        self.emit('data', path.resolve(path.dirname(file.path), p));
+      });
+    } else if (typeof json[prop] === 'object') {
+      Object.keys(json[prop]).forEach(function(name) {
+        self.emit('data', name);
+      });
+    } else {
+      self.emit('data', path.resolve(path.dirname(file.path), json[prop]));
+    }
+  };
+}
+
+function urlRewriter(file) {
+  return reworkURL(function(url) {
+    var abs = path.resolve(path.dirname(file.path), url);
+    return abs.slice(process.cwd().length);
+  });
+}
+
+function logError(err) {
+  console.log('error', err, err.stack);
 }

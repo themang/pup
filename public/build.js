@@ -38882,16 +38882,14 @@ var minlengthDirective = function() {
 !window.angular.$$csp() && window.angular.element(document).find('head').prepend('<style type="text/css">@charset "UTF-8";[ng\\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide:not(.ng-hide-animate){display:none !important;}ng\\:form{display:block;}</style>');
 },{}],"/Users/joshtaylor/Repositories/beauty-of-code/node_modules/lib/html5mode/html5mode.js":[function(require,module,exports){
 /**
- * Export
- */
-var name = module.exports = require('./package.json').name;
-
-/**
  * Modules
  */
 require("./../../../bower_components/angular/angular.js");
 
-
+/**
+ * Exports
+ */
+var name = module.exports = require('./package.json').name;
 
 
 angular.module(name, [])
@@ -38907,10 +38905,12 @@ module.exports=module.exports={
 }
 
 },{}],"/Users/joshtaylor/Repositories/beauty-of-code/node_modules/pages/main/main.html":[function(require,module,exports){
-module.exports = decodeURI("%3Cdiv%20id='main'%3E%0A%20%20%3Ch1%3EHello%20World%202%3C/h1%3E%0A%3C/div%3E");
+module.exports = decodeURI("%3Cdiv%20layout='row'%20layout-align='center%20center'%3E%0A%20%20%3Cspan%20ng-view%3E%3C/span%3E%0A%3C/div%3E");
 },{}],"/Users/joshtaylor/Repositories/beauty-of-code/node_modules/pages/main/main.js":[function(require,module,exports){
-var name = module.exports = 'main';
 
+/**
+ * Modules
+ */
 require("./../../../bower_components/angular/angular.js");
 require("./../../../bower_components/angular-material/angular-material.js");
 require("./../../../bower_components/angular-animate/angular-animate.js");
@@ -38920,7 +38920,17 @@ require("./../../../bower_components/angular-route/angular-route.js");
 
 var _ = require('lodash');
 
+/**
+ * Relatives
+ */
 require('./main.scss');
+
+
+/**
+ * Exports
+ */
+var name = module.exports = 'main';
+
 
 angular.module(name, [
   'ngMaterial',
@@ -38931,13 +38941,16 @@ angular.module(name, [
   var re = /^\s*(?:blob(?::|%3A))?(https?|ftp|file)(:|%3A)|data:image\//;
   $compileProvider.imgSrcSanitizationWhitelist(re);
 }])
+.directive('main', function() {
+  return {
+    template: require('./main.html'),
+    controller: 'MainCtrl',
+    controllerAs: 'Main'
+  }
+})
 .config(['$routeProvider', function($routeProvider) {
-  $routeProvider
-    .when('/', {
-      template: require('./main.html'),
-      controller: 'MainCtrl',
-      controllerAs: 'Main'
-    });
+
+
 }])
 .controller('MainCtrl', [function() {
 

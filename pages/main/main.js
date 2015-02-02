@@ -32,13 +32,16 @@ angular.module(name, [
   var re = /^\s*(?:blob(?::|%3A))?(https?|ftp|file)(:|%3A)|data:image\//;
   $compileProvider.imgSrcSanitizationWhitelist(re);
 }])
+.directive('main', function() {
+  return {
+    template: require('./main.html'),
+    controller: 'MainCtrl',
+    controllerAs: 'Main'
+  }
+})
 .config(['$routeProvider', function($routeProvider) {
-  $routeProvider
-    .when('/', {
-      template: require('./main.html'),
-      controller: 'MainCtrl',
-      controllerAs: 'Main'
-    });
+
+
 }])
 .controller('MainCtrl', [function() {
 
