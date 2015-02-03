@@ -1,0 +1,33 @@
+<div layout='column' layout-align='center center'>
+  <md-button class="md-fab large mrg-bottom md-primary md-hue-1" ng-click='Personal.prev()'>
+    <i class='md-keyboard-arrow-up'></i>
+  </md-button>
+  <div ng-switch='Personal.card'>
+    <md-card layout='column' layout-align='center center' class='pad-2x' ng-switch-when='1'>
+      <div class='large center mrg-bottom'>Middle School</div>
+      <div layout='column' layout-align='center center' ng-controller='middleHobbies' ng-mouseover="Hobbies.clearHover()">
+        <div layout='row'>
+          <img class='media mrg-2x md-whiteframe-z1' ng-src='/messi.{{Hobbies.hover === "messi" ? "gif" : "jpeg"}}' ng-mouseover="Hobbies.mediaHover($event, 'messi')"></img>
+          <img class='media mrg-2x md-whiteframe-z1' ng-src='/sharma.{{Hobbies.hover === "sharma" ? "gif" : "jpeg"}}' ng-mouseover="Hobbies.mediaHover($event, 'sharma')"></img>
+        </div>
+        <div layout='row'>
+          <video width='475' class='mrg-2x md-whiteframe-z1' id='warcraft-video' ng-mouseover="Hobbies.mediaHover($event, 'warcraft'); Hobbies.playWarcraft()">
+            <source src='warcraft3.mp4' type='video/mp4'>
+          </video>
+          <video width='475' class='mrg-2x md-whiteframe-z1' id='tj-video' ng-mouseover="Hobbies.mediaHover($event, 'tj'); Hobbies.playTJ()">
+            <source src='tj-component.mp4' type='video/mp4'>
+          </video>
+        </div>
+      </div>
+    </md-card>
+    <md-card layout='column' layout-align='center center' class='pad-2x' ng-switch-when='2'>
+      <div class='pad-2x'>
+        <img src='/ucla.jpg'></img>
+      </div>
+      <div class='medium center'>2 years studying mechanical engineering and bioinformatics.</div>
+    </md-card>
+  </div>
+  <md-button class="md-fab large mrg-top md-primary md-hue-1" ng-click='Personal.next()'>
+    <i class='md-keyboard-arrow-down'></i>
+  </md-button>
+</div>

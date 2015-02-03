@@ -9,6 +9,9 @@ require('angular-aria');
 require('angular-sanitize');
 require('angular-route');
 
+
+
+var $ = require('jquery');
 var _ = require('lodash');
 
 /**
@@ -26,7 +29,12 @@ var name = module.exports = 'main';
 angular.module(name, [
   'ngMaterial',
   'ngSanitize',
-  'ngRoute'
+  'ngRoute',
+
+  require('lib/slides'),
+  require('pages/title'),
+  require('pages/verse'),
+  require('pages/personal')
 ])
 .config(['$compileProvider', function($compileProvider) {
   var re = /^\s*(?:blob(?::|%3A))?(https?|ftp|file)(:|%3A)|data:image\//;
@@ -39,12 +47,39 @@ angular.module(name, [
     controllerAs: 'Main'
   }
 })
-.config(['$routeProvider', function($routeProvider) {
+.config(['$routeProvider', 'slidesProvider', function($routeProvider, slides) {
+  $routeProvider
+    .otherwise({
+      redirectTo: '/slide/1'
+    });
+
+  var order = ['title', 'personal', 'verse'];
+
+  order.forEach(function(name, idx) {
+    $routeProvider.when('/slide/' + (idx + 1), _.extend(slides.get(name), {name: name}));
+  });
 
 
 }])
-.controller('MainCtrl', [function() {
+.controller('MainCtrl', ['$element', '$location', '$rootScope', '$route', function($element, $location, $rootScope, $route) {
+  var vm = this;
+  $(window).on('keyup', function(evt) {
+    if (evt.which === 39) {
+      var url = $location.url().split('/');
+      var idx = Number(url[2]);
+      $location.url('/slide/' + (idx + 1));
+      $rootScope.$apply();
+    } else if (evt.which === 37) {
+      var url = $location.url().split('/');
+      var idx = Number(url[2]);
+      $location.url('/slide/' + (idx - 1));
+      $rootScope.$apply();
+    }
+  });
 
+  $rootScope.$on('$routeChangeSuccess', function() {
+    vm.name = $route.current.$$route.name;
+  })
 }]);
 
 

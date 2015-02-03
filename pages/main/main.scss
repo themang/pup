@@ -1,3 +1,127 @@
-#main {
-  color: blue;
+$xxl: 120px;
+$xl: 45px;
+$l: 30px;
+$m: 22px;
+$s: 17px;
+$xs: 13px;
+$mini: 11px;
+
+$spacing: 12px;
+$spacing-2x: 24px;
+$spacing-p5x: 6px;
+
+$text-color: #6A6A6A;
+
+$font-stack: Lato, Open Sans, Helvetica Neue, Helvetica, Arial, sans-serif;
+
+$sides: left, right, top, bottom;
+
+body {
+  font-size: $m;
+  color: $text-color;
+  background: #E9E9E9;
+  font-family: $font-stack;
 }
+
+.xx-large {
+  font-size: $xxl;
+  line-height: 1.2em;
+}
+.x-large {
+  font-size: $xl;
+  line-height: 1.2em;
+}
+.large {
+  font-size: $l;
+  line-height: 1.2em;
+}
+.medium {
+  font-size: $m;
+  line-height: 1.2em;
+}
+.small {
+  font-size: $s;
+  line-height: 1.2em;
+}
+.x-small {
+  font-size: $xs;
+  line-height: 1.2em;
+}
+.xx-small {
+  font-size: $mini;
+  line-height: 1.2em;
+}
+.height-100 {
+  height: 100%;
+}
+.center {
+  text-align: center;
+}
+
+.pad {
+  padding: $spacing;
+}
+.pad-2x {
+  padding: $spacing-2x;
+}
+.pad-p5x {
+  padding: $spacing-p5x;
+}
+
+@each $side in $sides {
+  .pad-#{$side} {
+    padding-#{$side}: $spacing;
+  }
+}
+
+@each $side in $sides {
+  .pad-#{$side}-2x {
+    padding-#{$side}: $spacing-2x;
+  }
+}
+
+@each $side in $sides {
+  .pad-#{$side}-p5x {
+    padding-#{$side}: $spacing-p5x;
+  }
+}
+
+.mrg {
+  margin: $spacing;
+}
+.mrg-2x {
+  margin: $spacing-2x;
+}
+.mrg-p5x {
+  margin: $spacing-p5x;
+}
+
+@each $side in $sides {
+  .mrg-#{$side} {
+    margin-#{$side}: $spacing;
+  }
+}
+
+@each $side in $sides {
+  .mrg-#{$side}-2x {
+    margin-#{$side}: $spacing-2x;
+  }
+}
+
+@each $side in $sides {
+  .mrg-#{$side}-p5x {
+    margin-#{$side}: $spacing-p5x;
+  }
+}
+
+
+
+
+[main] {
+  height: 100%;
+}
+
+md-card {
+  background-color: white;
+}
+

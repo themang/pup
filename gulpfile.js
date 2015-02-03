@@ -34,6 +34,8 @@ var rework = require('rework');
 var reworkURL = require('rework-plugin-url');
 var es = require('event-stream');
 var path = require('path');
+var glob = require('glob');
+var mkdirp = require('mkdirp');
 
 
 /**
@@ -51,11 +53,21 @@ gulp.task('link-pages', ['unlink-pages'], link('pages'));
 // create public dir
 gulp.task('public', ['unlink-public'], makePublic);
 
+gulp.task('assets', ['public'], assets);
+
+var bowerAssets = copyTask({
+  pattern: 'bower_components/**',
+  excluding: /\.js|md|json|sh|css$/,
+  to: 'public'
+});
+
 gulp.task('bower-css', ['public'], bowerCss);
+gulp.task('bower-assets', ['bower-css'], bowerAssets);
+
 
 // Dev
 gulp.task('build', ['public', 'link-lib', 'link-pages'], bundle);
-gulp.task('dev', ['build', 'bower-css'], startApp);
+gulp.task('dev', ['build', 'bower-assets', 'assets'], startApp);
 
 /**
  * Bundler
@@ -70,7 +82,9 @@ var bundler = watchify(browserify('./client.js', watchify.args))
 function bundle() {
   return bundler.bundle()
     // log errors if they happen
-    .on('error', gutil.log.bind(gutil, 'Browserify Error'))
+    .on('error', function(err) {
+      console.log('stack', err.stack);
+    })
     .pipe(source('build.js'))
     .pipe(buffer())
     .pipe(sourcemaps.init({loadMaps: true})) // loads map from browserify file
@@ -78,6 +92,7 @@ function bundle() {
     .pipe(gulp.dest('./public'))
     .pipe(livereload());
 }
+
 
 function bowerCss() {
   
@@ -103,6 +118,11 @@ function bowerCss() {
     }))
     .on('error', logError)
     .pipe(concat('bower.css'))
+    .pipe(gulp.dest('public'));
+}
+
+function assets() {
+  return gulp.src(['assets/**'])
     .pipe(gulp.dest('public'));
 }
 
@@ -205,4 +225,35 @@ function urlRewriter(file) {
 
 function logError(err) {
   console.log('error', err, err.stack);
+}
+
+function copyTask(opts) {
+  // Avoid using gulp for this because it is obscenely slow
+  var pattern = opts.pattern;
+  var excluding = opts.excluding;
+  var to = opts.to;
+
+  return function(cb) {
+    glob(pattern, function(err, files) {
+      if(err) throw err;
+      files = files || [];
+
+      var n = 0;
+      files.forEach(function(file) {
+        if(!excluding || excluding.test(file)) return;
+        var dest = path.join(to, file);
+
+        if(fs.statSync(file).isDirectory())
+          mkdirp.sync(dest);
+        else {
+          n++;
+          fs.createReadStream(file).pipe(fs.createWriteStream(dest))
+          .on('close', function() {
+            n--;
+            if(n === 0) cb();
+          });
+        }
+      });
+    });
+  };
 }
