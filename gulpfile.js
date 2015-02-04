@@ -16,6 +16,7 @@ var csso = require('gulp-csso');
 var source = require('vinyl-source-stream');
 var buffer = require('vinyl-buffer');
 var File = require('vinyl');
+var watch = require('gulp-watch');
 
 // browserify watch
 var watchify = require('watchify');
@@ -55,14 +56,11 @@ gulp.task('public', ['unlink-public'], makePublic);
 
 gulp.task('assets', ['public'], assets);
 
-var bowerAssets = copyTask({
-  pattern: 'bower_components/**',
-  excluding: /\.js|md|json|sh|css$/,
-  to: 'public'
-});
-
 gulp.task('bower-css', ['public'], bowerCss);
-gulp.task('bower-assets', ['bower-css'], bowerAssets);
+gulp.task('bower-assets', ['bower-css'], function() {
+  return gulp.src('bower_components')
+    .pipe(symlink('public/bower_components'));
+});
 
 
 // Dev
@@ -122,6 +120,9 @@ function bowerCss() {
 }
 
 function assets() {
+  watch('assets/**')
+    .pipe(gulp.dest('public'));
+    
   return gulp.src(['assets/**'])
     .pipe(gulp.dest('public'));
 }

@@ -78,6 +78,7 @@ function middleHobbiesCtrl($scope) {
   }
 
   function initVideos() {
+    console.log('initVideos');
     $('#warcraft-video')[0].currentTime = 122;
     $('#tj-video')[0].currentTime = 12*60 + 7;
   }
@@ -98,7 +99,8 @@ function middleHobbiesCtrl($scope) {
   }
 
 
-  initVideos();
+  setTimeout(initVideos);
+  clearHover();
 
   $scope.Hobbies = this;
 }

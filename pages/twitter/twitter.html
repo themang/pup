@@ -1,0 +1,63 @@
+
+  <div layout='row' ng-keyup='stopPropagation($event)'>
+    <md-card >
+      <div ui-ace="{
+        useWrapMode : true,
+        theme:'twilight',
+        mode: 'javascript',
+        onLoad: aceLoaded,
+        onChange: aceChanged
+      }"></div>
+    </md-card>
+    <div id='twitter-window' layout='column'>
+      <div layout='column' layout-align='start center' flex>
+        <div class='tweets'>
+          <div class='mrg' ng-click='run()'>Change</div>
+          <md-card>
+            <div class='tweet-box'>
+              <img src='twitter_avatar.png' class='twitter-avatar'></img>
+              <div class='tweet-input-placeholder' ng-click='edit()' ng-show='!editing'>
+                <div>What's happening?</div>
+              </div>
+              <div ng-show='editing'>
+                <div class='tweet-input-box'>
+                  <textarea class='tweet-input' ng-model='text'>
+                    
+                  </textarea>
+                </div>
+                <div class='buttons' layout='row'>
+                  <div flex></div>
+                  <div class='tweet-counter'>
+                    {{maxLength  - text.length}}
+                  </div>
+                  <button class='tweet-btn' ng-disabled='text.length > maxLength'>
+                    <span class='tweet-btn-text' ng-click='postTweet()'>Tweet</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class='text-tweets'>
+              <div class='text-tweet-item' ng-repeat='tweet in tweets'>
+                <div layout='row'>
+                  <img src='twitter_avatar.png' class='twitter-avatar-big'></img>
+                  <div class='info-tweet' flex>
+                    <span class='tweet-user-display-name'>
+                      Josh Taylor
+                    </span>
+                    <span class='tweet-username'>
+                      @joshrtay
+                    </span>
+                    <div class='text-tweet'>
+                    {{tweet}}
+                    </div>
+                  </div>
+                  
+                </div>
+              
+              </div>
+            </div>
+          </md-card>
+        </div>
+      </div>
+    </div>
+  </div>

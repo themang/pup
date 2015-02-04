@@ -30,11 +30,17 @@ angular.module(name, [
   'ngMaterial',
   'ngSanitize',
   'ngRoute',
+  'ngAnimate',
 
   require('lib/slides'),
   require('pages/title'),
   require('pages/verse'),
-  require('pages/personal')
+  require('pages/personal'),
+  require('pages/hello-world'),
+  require('pages/dots'),
+  require('pages/say-it'),
+  require('pages/dots-sort'),
+  require('pages/twitter')
 ])
 .config(['$compileProvider', function($compileProvider) {
   var re = /^\s*(?:blob(?::|%3A))?(https?|ftp|file)(:|%3A)|data:image\//;
@@ -44,7 +50,8 @@ angular.module(name, [
   return {
     template: require('./main.html'),
     controller: 'MainCtrl',
-    controllerAs: 'Main'
+    controllerAs: 'Main',
+    replace: true
   }
 })
 .config(['$routeProvider', 'slidesProvider', function($routeProvider, slides) {
@@ -53,7 +60,7 @@ angular.module(name, [
       redirectTo: '/slide/1'
     });
 
-  var order = ['title', 'personal', 'verse'];
+  var order = ['title', 'personal', 'verse', 'hello-world', 'say-it', 'dots', 'dots-sort', 'twitter'];
 
   order.forEach(function(name, idx) {
     $routeProvider.when('/slide/' + (idx + 1), _.extend(slides.get(name), {name: name}));

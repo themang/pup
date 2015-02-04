@@ -1,0 +1,130 @@
+.ace_editor { 
+  height: 600px; 
+  width: 600px;
+}
+#window {
+  height: 600px;
+  width: 600px;
+}
+
+.tweet-box {
+  border-radius: 3px 3px 0 0;
+  border-color: #BFE0EC;
+  background-color: #E5F2F7;
+  padding: 10px 12px;
+  width: 100%;
+  position: relative;
+}
+
+.tweet-input-placeholder {
+  color: #0084B4;
+  font-size: 14px;
+  padding: 8px 10px;
+  background-color: #fff;
+  vertical-align: top;
+  border: 1px solid #e1e8ed;
+  border-radius: 3px;
+  line-height: 20px;
+  margin-left: 56px;
+  cursor: text;
+}
+
+.tweet-input {
+  resize: none;
+  border: none;
+  outline: none;
+  width: 100%;
+  height: 100%;
+}
+
+.tweet-input-box {
+  padding: 8px 10px;
+  color: #0084B4;
+  border: 1px solid #e1e8ed;
+  border-radius: 3px;
+  background-color: #fff;
+  margin-left: 56px;
+  width: 420px;
+  font-size: 14px;
+  height: 96px;
+  margin-bottom: 8px;
+}
+
+.tweets {
+  width: 500px;
+}
+
+.tweets md-card {
+  width: 100%;
+}
+
+.twitter-avatar {
+  position: absolute;
+  left: 28px;
+  top: 13px;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+}
+
+.twitter-avatar-big {
+  border-radius: 5px;
+  width: 48px;
+  height: 48px;
+}
+
+.tweet-btn {
+  background-color: #0084B4;
+  background: rgba(0,132,180,.8);
+  border: 1px solid transparent;
+  color: #fff;
+  text-align: center;
+  padding: 9px 16px 8px 17px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: bold;
+  line-height: normal;
+}
+
+.tweet-btn[disabled] {
+  opacity: .2;
+  text-shadow: none;
+}
+
+.tweet-counter {
+  top: 10px;
+  margin-right: 5px;
+  background-color: transparent;
+  color: #8899a6;
+  font-size: 14px;
+  text-shadow: 0 1px 1px rgba(255,255,255,.75);
+  line-height: 38px;
+}
+
+.text-tweet-item {
+  background: #fff;
+  border-left: 1px solid #e1e8ed;
+  border-right: 1px solid #e1e8ed;
+  border-bottom: 1px solid #e1e8ed;
+  padding: 9px 12px;
+  min-height: 51px;
+  font-size: 14px;
+  line-height: 14px;
+}
+
+.info-tweet {
+  margin-left: 10px;
+}
+
+.text-tweet {
+  word-wrap: break-word;
+  margin-top: 5px;
+  color: rgb(41, 47, 51);
+}
+
+.tweet-user-display-name {
+  font-weight: bold;
+  color: #292f33;
+}
+
