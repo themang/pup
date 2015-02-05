@@ -60,7 +60,7 @@ angular.module(name, [
       redirectTo: '/slide/1'
     });
 
-  var order = ['title', 'personal', 'verse', 'hello-world', 'say-it', 'dots', 'dots-sort', 'twitter'];
+  var order = ['title', 'personal', 'verse', 'hello-world', 'say-it', 'dots', 'twitter'];
 
   order.forEach(function(name, idx) {
     $routeProvider.when('/slide/' + (idx + 1), _.extend(slides.get(name), {name: name}));
@@ -85,7 +85,8 @@ angular.module(name, [
   });
 
   $rootScope.$on('$routeChangeSuccess', function() {
-    vm.name = $route.current.$$route.name;
+    if ($route.current.$$route)
+      vm.name = $route.current.$$route.name;
   })
 }]);
 
