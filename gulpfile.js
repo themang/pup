@@ -17,6 +17,7 @@ var source = require('vinyl-source-stream');
 var buffer = require('vinyl-buffer');
 var File = require('vinyl');
 var watch = require('gulp-watch');
+var gulpIf = require('gulp-if');
 
 // browserify watch
 var watchify = require('watchify');
@@ -38,6 +39,8 @@ var path = require('path');
 var glob = require('glob');
 var mkdirp = require('mkdirp');
 
+
+var PRODUCTION = process.env.NODE_ENV === "production";
 
 /**
  * Tasks
@@ -65,35 +68,53 @@ gulp.task('bower-assets', ['bower-css'], function() {
 
 // Dev
 gulp.task('build', ['public', 'link-lib', 'link-pages'], bundle);
-gulp.task('dev', ['build', 'bower-assets', 'assets'], startApp);
+gulp.task('copy', ['bower-assets', 'assets']);
+
+gulp.task('build-copy', ['build', 'copy']);
+gulp.task('dev', ['build-copy'], startApp);
 
 /**
  * Bundler
  */
 
-var bundler = watchify(browserify('./client.js', watchify.args))
+var bundler = browserify('./client.js', watchify.args)
+  .transform(sassify, {global: true})
   .transform(debowerify, {global: true})
   .transform(dehtmlify, {global: true})
-  .transform(sassify, {global: true})
-  .on('update', bundle);
+  
+
+if (!PRODUCTION) {
+  bundler = watchify(bundler)
+    .on('update', bundle);
+}
 
 function bundle() {
-  return bundler.bundle()
-    // log errors if they happen
+  var bundleStream = bundler.bundle()
     .on('error', function(err) {
-      console.log('stack', err.stack);
+      console.error('build error:', err);
     })
-    .pipe(source('build.js'))
-    .pipe(buffer())
-    .pipe(sourcemaps.init({loadMaps: true})) // loads map from browserify file
-    .pipe(sourcemaps.write('./')) // writes .map file
-    .pipe(gulp.dest('./public'))
-    .pipe(livereload());
+    .pipe(sorce('build.js'))
+    .pipe(buffer());
+
+  if (!PRODUCTION) {
+    bundleStream
+      .pipe(sourcemaps.init({loadMaps: true}))
+      .pipe(sourcemaps.write('./'))
+      .pipe(gulp.dest('./public'))
+      .pipe(livereload());
+  } else {
+    bundleStream
+      .pipe(uglify({mangle: false}))
+      .pipe(gulp.dest('./public'));
+  }
+
+
+  return bundleStream;
 }
 
 
 function bowerCss() {
-  
+
   var cssFilter = filter('**/*.css');
 
   return gulp.src('./bower.json')
@@ -120,11 +141,15 @@ function bowerCss() {
 }
 
 function assets() {
-  watch('assets/**')
+  if (!PRODUCTION) {
+    watch('assets/**')
     .pipe(gulp.dest('public'));
-    
+  }
+
+
   return gulp.src(['assets/**'])
-    .pipe(gulp.dest('public'));
+    .pipe(gulp.dest('public'))
+    .pipe(gulpIf(!PRODUCTION, livereload()));
 }
 
 function makePublic() {
@@ -189,7 +214,6 @@ function vinylify(base) {
     if(file[0] !== '/')
       file = path.join(base, file);
 
-    console.log('file', file, fs.existsSync(file));
     fs.existsSync(file) && this.emit('data', new File({
       path: file,
       base: base,
