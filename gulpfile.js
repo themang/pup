@@ -4,41 +4,17 @@
 
 // gulp
 var gulp = require('gulp');
-var gutil = require('gulp-util');
-var sourcemaps = require('gulp-sourcemaps');
-var symlink = require('gulp-symlink');
-var sass = require('gulp-sass');
-var concat = require('gulp-concat');
-var livereload = require('gulp-livereload');
-var concat = require('gulp-concat');
-var filter = require('gulp-filter');
-var csso = require('gulp-csso');
-var source = require('vinyl-source-stream');
-var buffer = require('vinyl-buffer');
-var File = require('vinyl');
-var watch = require('gulp-watch');
-var gulpIf = require('gulp-if');
 
-// browserify watch
-var watchify = require('watchify');
 
-// browserify transforms
-var browserify = require('browserify');
-var debowerify = require('debowerify');
-var dehtmlify = require('dehtmlify');
-var sassify = require('sassify');
 
-// node
-var fs = require('fs');
-var child_process = require('child_process');
-var rimraf = require('rimraf');
-var rework = require('rework');
-var reworkURL = require('rework-plugin-url');
-var es = require('event-stream');
-var path = require('path');
-var glob = require('glob');
-var mkdirp = require('mkdirp');
-
+var browserifyTask = require('gulp-browserify-bundle-task');
+var bowerCssTask = require('gulp-bower-css-task');
+var serverTask = require('gulp-server-task');
+var linkTasks = require('gulp-link-tasks');
+var link = linkTasks.link;
+var unlink = linkTasks.unlink;
+var rmdir = linkTasks.rmdir;
+var mkdir = linkTasks.mkdir;
 
 var PRODUCTION = process.env.NODE_ENV === "production";
 
@@ -46,239 +22,25 @@ var PRODUCTION = process.env.NODE_ENV === "production";
  * Tasks
  */
 
-gulp.task('unlink-lib', unlink('lib'));
-gulp.task('unlink-pages', unlink('pages'));
-gulp.task('unlink-public', rimrafPublic);
-
 //enables lib and pages shortcuts
-gulp.task('link-lib', ['unlink-lib'], link('lib'));
-gulp.task('link-pages', ['unlink-pages'], link('pages'));
+gulp.task('unlink', unlink('lib', 'pages').from('node_modules'));
+gulp.task('link', link('lib', 'pages').to('node_modules'));
 
 // create public dir
-gulp.task('public', ['unlink-public'], makePublic);
+gulp.task('rimraf-public', rmdir('public'));
+gulp.task('public', ['rimraf-public'], mkdir('public'));
 
-gulp.task('assets', ['public'], assets);
+gulp.task('assets', ['public'], link('assets', 'bower_components').watch(!PRODUCTION).to('public'));
 
-gulp.task('bower-css', ['public'], bowerCss);
-gulp.task('bower-assets', ['bower-css'], function() {
-  return gulp.src('bower_components')
-    .pipe(symlink('public/bower_components'));
-});
-
+gulp.task('bower-css', ['public'], bowerCssTask({devMode: !PRODUCTION}));
 
 // Dev
-gulp.task('build', ['public', 'link-lib', 'link-pages'], bundle);
-gulp.task('copy', ['bower-assets', 'assets']);
+gulp.task('browserify', ['public', 'link'], browserifyTask({devMode: !PRODUCTION}));
 
-gulp.task('build-copy', ['build', 'copy']);
-gulp.task('dev', ['build-copy'], startApp);
-
-/**
- * Bundler
- */
-
-var bundler = browserify('./client.js', watchify.args)
-  .transform(sassify, {global: true})
-  .transform(debowerify, {global: true})
-  .transform(dehtmlify, {global: true})
-  
-
-if (!PRODUCTION) {
-  bundler = watchify(bundler)
-    .on('update', bundle);
-}
-
-function bundle() {
-  var bundleStream = bundler.bundle()
-    .on('error', function(err) {
-      console.error('build error:', err);
-    })
-    .pipe(sorce('build.js'))
-    .pipe(buffer());
-
-  if (!PRODUCTION) {
-    bundleStream
-      .pipe(sourcemaps.init({loadMaps: true}))
-      .pipe(sourcemaps.write('./'))
-      .pipe(gulp.dest('./public'))
-      .pipe(livereload());
-  } else {
-    bundleStream
-      .pipe(uglify({mangle: false}))
-      .pipe(gulp.dest('./public'));
-  }
+gulp.task('build', ['browserify', 'bower-css', 'assets']);
+gulp.task('dev', ['build'], serverTask('server.js'));
 
 
-  return bundleStream;
-}
 
 
-function bowerCss() {
 
-  var cssFilter = filter('**/*.css');
-
-  return gulp.src('./bower.json')
-    .pipe(es.through(pluckFilesFromJson('dependencies')))
-    .pipe(es.mapSync(function(name) {
-      return path.join('bower_components', name, '/bower.json');
-    }))
-    .pipe(vinylify())
-    .pipe(es.through(pluckFilesFromJson('main')))
-    .pipe(vinylify())
-    .pipe(cssFilter)
-    .pipe(es.mapSync(function(file) {
-      var css = file.contents.toString('utf8')
-        , res = rework(css)
-        .use(urlRewriter(file))
-        .toString({sourcemap: true});
-
-      file.contents = new Buffer(res);
-      return file;
-    }))
-    .on('error', logError)
-    .pipe(concat('bower.css'))
-    .pipe(gulp.dest('public'));
-}
-
-function assets() {
-  if (!PRODUCTION) {
-    watch('assets/**')
-    .pipe(gulp.dest('public'));
-  }
-
-
-  return gulp.src(['assets/**'])
-    .pipe(gulp.dest('public'))
-    .pipe(gulpIf(!PRODUCTION, livereload()));
-}
-
-function makePublic() {
-  try {
-    fs.mkdirSync('public');
-  } catch(e) {
-
-  }
-}
-
-function rimrafPublic(cb) {
-  rimraf('./public', cb);
-}
-
-function link(dir) {
-  dir = dir || 'lib';
-  return function() {
-    return gulp.src(dir)
-      .pipe(symlink('node_modules/' + dir));
-  }
-}
-
-function unlink(dir) {
-  dir = dir || 'lib';
-  return function() {
-    try {
-      fs.unlinkSync('node_modules/' + dir);
-    } catch(e) {
-      if(e.code !== 'ENOENT')
-        throw e;
-    }
-  }
-}
-
-var app;
-process.on('uncaughtException', function(errs) {
-  app && app.kill();
-  // Sometimes we throw an arary of errors,
-  // so normalize that case
-  [].concat(errs).forEach(function(err) {
-    // Don't print out jshint error stacks
-    if(!err.stack || err.stack.indexOf('JSHint') === -1)
-      console.log('uncaught exception'.red, err, err.stack);
-  });
-  process.exit(-1);
-});
-
-function startApp(cb) {
-  livereload.listen();
-
-  var app = child_process.fork('server.js');
-
-  app.on('message', function(msg) {
-    if(msg === 'listening')
-      cb && cb();
-  });
-}
-
-function vinylify(base) {
-  base = base || process.cwd();
-  return es.through(function(file) {
-    if(file[0] !== '/')
-      file = path.join(base, file);
-
-    fs.existsSync(file) && this.emit('data', new File({
-      path: file,
-      base: base,
-      contents: fs.readFileSync(file)
-    }));
-  });
-}
-
-function pluckFilesFromJson(prop) {
-  return function(file) {
-    var self = this
-      , json = JSON.parse(file.contents.toString('utf8'));
-
-    if(Array.isArray(json[prop])) {
-      json[prop].forEach(function(p) {
-        self.emit('data', path.resolve(path.dirname(file.path), p));
-      });
-    } else if (typeof json[prop] === 'object') {
-      Object.keys(json[prop]).forEach(function(name) {
-        self.emit('data', name);
-      });
-    } else {
-      self.emit('data', path.resolve(path.dirname(file.path), json[prop]));
-    }
-  };
-}
-
-function urlRewriter(file) {
-  return reworkURL(function(url) {
-    var abs = path.resolve(path.dirname(file.path), url);
-    return abs.slice(process.cwd().length);
-  });
-}
-
-function logError(err) {
-  console.log('error', err, err.stack);
-}
-
-function copyTask(opts) {
-  // Avoid using gulp for this because it is obscenely slow
-  var pattern = opts.pattern;
-  var excluding = opts.excluding;
-  var to = opts.to;
-
-  return function(cb) {
-    glob(pattern, function(err, files) {
-      if(err) throw err;
-      files = files || [];
-
-      var n = 0;
-      files.forEach(function(file) {
-        if(!excluding || excluding.test(file)) return;
-        var dest = path.join(to, file);
-
-        if(fs.statSync(file).isDirectory())
-          mkdirp.sync(dest);
-        else {
-          n++;
-          fs.createReadStream(file).pipe(fs.createWriteStream(dest))
-          .on('close', function() {
-            n--;
-            if(n === 0) cb();
-          });
-        }
-      });
-    });
-  };
-}
